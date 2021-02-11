@@ -74,18 +74,27 @@ jobs:
     docker:
       - image: circleci/node:13.8.0
     steps:
-      - run: echo test-frontend
       - checkout
-      # Restore from cache
-      # Your job code here
+      - restore_cache:
+          key: frontend-build
+      - run:
+          name: Test front-end
+          command: |
+            cd frontend
+            npm run test     
                 
   test-backend:
     docker:
       - image: circleci/node:13.8.0
     steps:
       - checkout
-      # Restore from cache
-      # Your job code here
+      - restore_cache:
+          key: backend-build
+      - run:
+          name: Back-end test
+          command: |
+            cd backend
+            npm run test  
             
   scan-frontend:
     docker:
