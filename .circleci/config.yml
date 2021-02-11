@@ -107,7 +107,7 @@ jobs:
           name: Check frontend for known vulnerabilities
           command: |
             cd frontend
-            npm audit --audit-level=critical
+            npm audit fix --audit-level=critical --force
 
   scan-backend:
     docker:
