@@ -101,8 +101,13 @@ jobs:
       - image: circleci/node:13.8.0
     steps:
       - checkout
-      # Restore from cache
-      # Your job code here
+      - restore_cache:
+          key: v1-frontend-build
+      - run:
+          name: Check for known vulnerabilities
+          command: |
+            cd frontend
+            npm audit --audit-level=critical
 
   scan-backend:
     docker:
@@ -289,9 +294,9 @@ workflows:
       - test-backend:
           requires: [build-backend]
       - scan-backend:
-          requires: [build-backend]
+          requires: [test-backend]
       - scan-frontend:
-          requires: [build-frontend]
+          requires: [test-frontend]
       - deploy-infrastructure:
           requires: [test-frontend, test-backend, scan-frontend, scan-backend]
           filters:
