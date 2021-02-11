@@ -87,7 +87,8 @@ jobs:
           command: |
             cd frontend
             npm run test     
-      - slack/status     
+      - slack/status
+
   test-backend:
     docker:
       - image: circleci/node:13.8.0
@@ -128,7 +129,7 @@ jobs:
             cd backend
             npm audit fix --audit-level=critical --force
       - slack/status
-      
+
   deploy-infrastructure:
     docker:
       - image: amazon/aws-cli
