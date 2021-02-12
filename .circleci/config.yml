@@ -72,7 +72,6 @@ jobs:
             cd backend
             npm i
             npm run build
-            exit 1
       - save_cache:
           paths: [backend/node_modules]
           key: v1-backend-build 
@@ -92,6 +91,9 @@ jobs:
           command: |
             cd frontend
             npm run test
+      - slack/notify:
+          event: fail
+          template: basic_fail_1
 
   test-backend:
     docker:
@@ -105,7 +107,10 @@ jobs:
           command: |
             cd backend
             npm run test  
-  
+      - slack/notify:
+          event: fail
+          template: basic_fail_1
+
   scan-frontend:
     docker:
       - image: circleci/node:13.8.0
@@ -118,6 +123,9 @@ jobs:
           command: |
             cd frontend
             npm audit fix --audit-level=critical --force
+      - slack/notify:
+          event: fail
+          template: basic_fail_1
 
   scan-backend:
     docker:
@@ -131,6 +139,9 @@ jobs:
           command: |
             cd backend
             npm audit fix --audit-level=critical --force
+      - slack/notify:
+          event: fail
+          template: basic_fail_1
 
   deploy-infrastructure:
     docker:
@@ -308,12 +319,16 @@ workflows:
           context: slack-secrets
       - test-frontend:
           requires: [build-frontend]
+          context: slack-secrets
       - test-backend:
           requires: [build-backend]
+          context: slack-secrets
       - scan-backend:
           requires: [test-backend]
+          context: slack-secrets
       - scan-frontend:
           requires: [test-frontend]
+          context: slack-secrets
       - deploy-infrastructure:
           requires: [test-frontend, test-backend, scan-frontend, scan-backend]
           filters:
