@@ -148,6 +148,7 @@ jobs:
       - image: amazon/aws-cli
     steps:
       - checkout
+      - run: yum -y install tar gzip
       - run:
           name: Ensure back-end infrastructure exists
           command: |
@@ -354,6 +355,7 @@ workflows:
           context: slack-secrets
       - deploy-infrastructure:
           requires: [test-frontend, test-backend, scan-frontend, scan-backend]
+          context: slack-secrets
           filters:
             branches:
               only: [test-feature-branch]
