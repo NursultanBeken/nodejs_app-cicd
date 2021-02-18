@@ -158,6 +158,20 @@ jobs:
               --stack-name app-backend-${CIRCLE_WORKFLOW_ID:0:7}  \
               --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"
       - run:
+          name: Get and save public IP of EC2 instance to memstash.io
+          command: |      
+              PUBLIC_IP=$(aws ec2 describe-instances \
+              --region ${AWS_DEFAULT_REGION} \
+              --query "Reservations[*].Instances[*].PublicIpAddress" \
+              --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --output text)
+              
+              curl -H "Content-Type: text/plain" \
+                -H "token: ${CIRCLE_WORKFLOW_ID}" \
+                --request PUT \
+                --data ${PUBLIC_IP} \
+                https://api.memstash.io/values/public_ip_${CIRCLE_WORKFLOW_ID:0:7}
+      - run:
           name: Ensure front-end infrastructure exist
           command: |
             aws cloudformation deploy \
@@ -169,14 +183,23 @@ jobs:
       - run:
           name: Add back-end ip to ansible inventory
           command: |
-            # Your code here
-            exit 1
+            PUBLIC_IP=$(curl -H "token: ${CIRCLE_WORKFLOW_ID}" --request GET https://api.memstash.io/values/public_ip_${CIRCLE_WORKFLOW_ID:0:7})
+            echo "$PUBLIC_IP"
+            cd .circleci/ansible/
+            echo "[web]" > ./inventory.txt
+            echo "$PUBLIC_IP" >> ./inventory.txt
+            cat ./inventory.txt
       - persist_to_workspace:
           root: ~/
           paths:
             - project/.circleci/ansible/inventory.txt
       # Here's where you will add some code to rollback on failure      
+      
+      - slack/notify:
+          event: fail
+          template: basic_fail_1
 
+          
   configure-infrastructure:
     docker:
       - image: python:3.7-alpine3.11
