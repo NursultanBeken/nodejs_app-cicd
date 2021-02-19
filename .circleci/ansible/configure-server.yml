@@ -27,8 +27,6 @@
       become: true
       raw: test -e /usr/bin/python3 || (apt -y update && apt install -y python3)
       changed_when: false
-  
-  gather_facts: true
-  
+    
   roles:
     - configure-server
