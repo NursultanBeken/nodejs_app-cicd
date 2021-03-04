@@ -223,7 +223,6 @@ jobs:
           command: |
             printenv >> ./backend/.env
             cd .circleci/ansible/
-            cat ./inventory.txt
             ansible-playbook -i ./inventory.txt configure-server.yml
       # Here's where you will add some code to rollback on failure      
       - slack/notify:
@@ -238,13 +237,15 @@ jobs:
       - run:
           name: Run migrations
           command: |
-            # Your code here
-            exit 1
+            cd backend
+            npm run migrations > migrations_output.txt
       - run:
           name: Send migration results to memstash
           command: |
-            # Your code here
-            exit 1
+            cd backend 
+            cat migrations_output.txt
+            MGR_FLF=$( cat migrations_output.txt | grep "has been executed successfully" && 1 || 0 )
+            echo $MGR_FLF
      # Here's where you will add some code to rollback on failure      
 
   deploy-frontend:
