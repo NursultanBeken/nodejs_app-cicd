@@ -244,8 +244,13 @@ jobs:
           command: |
             cd backend 
             cat migrations_output.txt
-            MGR_FLF=$( cat migrations_output.txt | grep "has been executed successfully" && 1 || 0 )
-            echo $MGR_FLF
+            MGR_FLG=$( cat migrations_output.txt | grep "has been executed successfully" && 1 || 0 )
+            echo $MGR_FLG
+            curl -H "Content-Type: text/plain" \
+                -H "token: ${CIRCLE_WORKFLOW_ID}" \
+                --request PUT \
+                --data ${MGR_FLG} \
+                https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID}
      # Here's where you will add some code to rollback on failure      
 
   deploy-frontend:
